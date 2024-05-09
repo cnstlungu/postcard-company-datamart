@@ -3,7 +3,7 @@ from pandas import DataFrame
 from pyarrow import Table
 import pyarrow.parquet as pq
 
-from assets import PRODUCTS, ALL_DAYS,CHANNELS, get_channel_distribution,FIRST_NAMES, LAST_NAMES, RESELLERS_TRANSACTIONS, random_date
+from assets import PRODUCTS, CHANNELS, get_channel_distribution,FIRST_NAMES, LAST_NAMES, RESELLERS_TRANSACTIONS, random_date
 
 
 def generate_main(n=1000000):
