@@ -70,5 +70,5 @@ FROM
     ON t.sales_channel = c.channel_name
   LEFT JOIN {{ ref('dim_customer') }} cu
     ON t.customer_key = cu.customer_key
-  LEFT JOIN {{ ref('dim_salesagent') }} s
+  LEFT JOIN {{ ref('dim_sales_agent') }} s
     ON t.reseller_id = s.original_reseller_id

@@ -66,7 +66,7 @@ FROM
   trans_main t
   LEFT JOIN {{ ref('dim_product') }}
   e
-  ON t.product_id = e.product_key
+  ON t.product_id = e.original_product_id
   LEFT JOIN {{ ref('dim_channel') }} C
   ON t.channel_id = C.channel_key
   LEFT JOIN {{ ref('dim_customer') }}

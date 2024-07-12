@@ -58,7 +58,7 @@ SELECT 0 AS reseller_id, customer_id, customer_first_name, customer_last_name, c
 SELECT 
 
   {{ dbt_utils.generate_surrogate_key([
-      "'Main'",
+      'sales_agent_key',
       'customer_id']
   ) }} AS customer_key,
  
@@ -68,4 +68,4 @@ SELECT
  s.sales_agent_key
 
 FROM customers_union c
-LEFT JOIN {{ref('dim_salesagent')}} s ON c.reseller_id = s.original_reseller_id
+LEFT JOIN {{ref('dim_sales_agent')}} s ON c.reseller_id = s.original_reseller_id

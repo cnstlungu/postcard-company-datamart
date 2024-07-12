@@ -2,7 +2,10 @@
 
 SELECT  
 
-    id AS product_id, 
+    product_id, 
+    {{ dbt_utils.generate_surrogate_key(
+      [ 'product_id']
+    ) }} AS product_key,
     name AS product_name, 
     g.id AS geography_key, 
     price AS product_price

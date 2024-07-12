@@ -11,3 +11,4 @@ dbt_packages/
 __pycache__/
 *.duckdb
 *.parquet
+*.wal
