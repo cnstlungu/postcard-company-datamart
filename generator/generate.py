@@ -2,6 +2,7 @@ from random import randrange, choice
 from pandas import DataFrame
 from pyarrow import Table
 import pyarrow.parquet as pq
+from os import environ
 
 from assets import PRODUCTS, CHANNELS, get_channel_distribution,FIRST_NAMES, LAST_NAMES, RESELLERS_TRANSACTIONS, random_date
 
@@ -156,7 +157,7 @@ def generate_parquet_file(name, records):
     
     table = Table.from_pandas(df)
 
-    pq.write_table(table, f"./shared/parquet/{name}.parquet")
+    pq.write_table(table, f"{environ['INPUT_FILES_PATH']}/{name}.parquet")
 
 generate_main()
 generate_channels()
