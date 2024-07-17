@@ -7,5 +7,8 @@ schema = 'core'
 }}
 
 
-select channel_key, original_channel_id, channel_name
-from {{ref('staging_channels')}}
+SELECT 
+    channel_key, 
+    original_channel_id, 
+    channel_name
+FROM {{ref('staging_channels')}}
