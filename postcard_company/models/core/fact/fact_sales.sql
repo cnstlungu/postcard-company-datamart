@@ -9,7 +9,6 @@ SELECT
     transaction_id,
     product_key,
     channel_key,
-    reseller_id,
     bought_date_key,
     geography_key,
     total_amount,

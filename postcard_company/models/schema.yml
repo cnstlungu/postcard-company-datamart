@@ -5,33 +5,22 @@ models:
         enforced: true  
     columns:
       - name: channel_key
-        data_type: BIGINT
+        data_type: INTEGER
         constraints:
           - type: primary_key
       - name: channel_name
         data_type: VARCHAR
       - name: original_channel_id
-        data_type: BIGINT
+        data_type: INTEGER
   - name: fact_sales
     config:
       contract:
-        enforced: false
-    
-    # model-level constraints
-    # constraints:
-    #   - type: primary_key
-    #     columns: ['customer_key', 'product_key', 'channel_key', 'bought_date_key', 'geography_key']
-    
+        enforced: true
     columns:
       - name: channel_key
-        data_type: BIGINT
-        # column-level constraints
-        constraints:
-          # - type: not_null
-          - type: foreign_key
-            expression: postcard_company_core.dim_channel (channel_key)
+        data_type: INTEGER
       - name: bought_date_key
-        data_type: VARCHAR
+        data_type: INTEGER
       - name: commissionpaid
         data_type: DOUBLE 
       - name: commissionpct
@@ -41,13 +30,11 @@ models:
       - name: geography_key
         data_type: INTEGER  
       - name: product_key
-        data_type: INTEGER    
+        data_type: VARCHAR    
       - name: product_price
         data_type: DOUBLE  
       - name: qty
-        data_type: BIGINT            
-      - name: reseller_id
-        data_type: BIGINT    
+        data_type: INTEGER            
       - name: total_amount
         data_type: DOUBLE   
       - name: transaction_id
@@ -61,13 +48,13 @@ models:
           columns: ['sales_agent_key']
     columns:
       - name: sales_agent_key
-        data_type: BIGINT
+        data_type: INTEGER
         constraints:
           - type: primary_key
       - name: reseller_name
         data_type: VARCHAR
       - name: original_reseller_id
-        data_type: BIGINT
+        data_type: INTEGER
       - name: commission_pct
         data_type: DOUBLE
   - name: dim_customer
@@ -86,10 +73,7 @@ models:
       - name: customer_email
         data_type: VARCHAR
       - name: sales_agent_key
-        data_type: BIGINT
-        constraints:
-          - type: foreign_key
-            expression: postcard_company_core.dim_sales_agent (sales_agent_key)
+        data_type: INTEGER
   - name: dim_geography
     config:
       contract:

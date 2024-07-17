@@ -1,7 +1,7 @@
 {{ config(schema='staging') }}
 
 SELECT 
-    reseller_id, 
+    reseller_id::INTEGER AS reseller_id, 
     reseller_name, 
     commission_pct, 
 FROM {{ref('raw_resellers')}}

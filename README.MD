@@ -1,11 +1,13 @@
 # Postcard Company Datamart
 
-This project represents a data model build with `dbt-core` for an imaginary company selling postcards.
+This project is a learning-by-doing data model build with `dbt-core` for an imaginary company selling postcards.
 
-# Lore
 The company sells both directly but also through resellers in the majority of European countries.
 
 # Data model
+
+![Data Model](resources/data_model.png) 
+
 
 ## Layers
 
@@ -29,30 +31,35 @@ The company sells both directly but also through resellers in the majority of Eu
 The data is generated as parquet files by a Python script `generator/generate.py` using user-defined assets `assets.py`. These may be adjusted as per needs.
 
 
-## Preparing the dbt project
+## Setting up the project
 
 1. Rename `.env.example` to `.env`. This will contain relative paths for the database file (datamart.duckdb) and parquet input files
 
 2. Rename `shared\db\datamart.duckdb.example` to `shared\db\datamart.duckdb` or initiate an empty database there with the same name.
 
-
-## Generating the data
-
-1. Create a Python Virtual Environment
+3. Create a Python Virtual Environment
 
 `python3 -m venv .venv`
 
-2. Activate the Python venv
+4. Add environment variables to the virtual environment
+
+`cat .env >> .venv/bin/activate`
+
+5. Activate the Python venv
 
 `source .venv/bin/activate`
 
-3. Install the required packages
+6. Change the working directory to `generator`
 
-`pip install -r generator/requirements.txt`
+`cd generator`
 
-4. Generate the data
+7. Install the required packages
 
-`python generator/generate.py`
+`pip install -r requirements.txt`
+
+8. Generate the data
+
+`python3 generate.py`
 
 The generated data will be under `shared/parquet`.
 
@@ -69,12 +76,10 @@ The generated data will be under `shared/parquet`.
 
 3. Run `dbt deps` to install dependencies
 
-4. Run `dbt seed` to import the seed data
+4. Run `dbt seed` to import the seed (static) data
 
-5. Run `dbt compile` to check everything is in order
+5. Run `dbt compile` to compile the project
 
 6. Run `dbt run` to run the models
 
 7. Run `dbt test` to run the tests
-
-

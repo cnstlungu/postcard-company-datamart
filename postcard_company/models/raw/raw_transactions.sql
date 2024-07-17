@@ -5,7 +5,7 @@ SELECT
     customer_id,
     product_id,
     amount,
-    qty,
+    qty::INTEGER AS qty,
     channel_id,
     bought_date, 
     CURRENT_TIMESTAMP AS loaded_timestamp 
