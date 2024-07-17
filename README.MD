@@ -4,6 +4,9 @@ This project is a learning-by-doing data model build with `dbt-core` for an imag
 
 The company sells both directly but also through resellers in the majority of European countries.
 
+This model is used by my other projects:
+- [Portable Data Stack with Mage](https://github.com/cnstlungu/portable-data-stack-mage)
+
 # Data model
 
 ![Data Model](resources/data_model.png) 
