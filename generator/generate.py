@@ -3,6 +3,9 @@ from pandas import DataFrame
 from pyarrow import Table
 import pyarrow.parquet as pq
 from os import environ
+from dotenv import load_dotenv
+
+load_dotenv()
 
 from assets import PRODUCTS, CHANNELS, get_channel_distribution,FIRST_NAMES, LAST_NAMES, RESELLERS_TRANSACTIONS, random_date
 

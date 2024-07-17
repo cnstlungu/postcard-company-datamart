@@ -29,6 +29,13 @@ The company sells both directly but also through resellers in the majority of Eu
 The data is generated as parquet files by a Python script `generator/generate.py` using user-defined assets `assets.py`. These may be adjusted as per needs.
 
 
+## Preparing the dbt project
+
+1. Rename `.env.example` to `.env`. This will contain relative paths for the database file (datamart.duckdb) and parquet input files
+
+2. Rename `shared\db\datamart.duckdb.example` to `shared\db\datamart.duckdb` or initiate an empty database there with the same name.
+
+
 ## Generating the data
 
 1. Create a Python Virtual Environment
@@ -41,20 +48,13 @@ The data is generated as parquet files by a Python script `generator/generate.py
 
 3. Install the required packages
 
-`pip install -r requirements.txt`
+`pip install -r generator/requirements.txt`
 
 4. Generate the data
 
 `python generator/generate.py`
 
 The generated data will be under `shared/parquet`.
-
-
-## Preparing the dbt project
-
-1. Rename `.env.example` to `.env`. This will contain relative paths for the database file (datamart.duckdb) and parquet input files
-
-2. Rename `shared\db\datamart.duckdb.example` to `shared\db\datamart.duckdb` or initiate an empty database there with the same name.
 
 
 ## Running the dbt model
