@@ -7,8 +7,10 @@
 ) }}
 
 WITH generate_date AS (
-        SELECT CAST(RANGE AS DATE) AS date_value 
-          FROM RANGE(DATE '2015-01-01', DATE '2030-12-31', INTERVAL 1 DAY)
+        SELECT 
+            CAST(RANGE AS DATE) AS date_value 
+          FROM 
+            RANGE(DATE '2015-01-01', DATE '2030-12-31', INTERVAL 1 DAY)
           )
    SELECT 
    

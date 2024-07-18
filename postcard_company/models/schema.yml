@@ -39,6 +39,8 @@ models:
         data_type: DOUBLE   
       - name: transaction_id
         data_type: BIGINT
+      - name: sales_agent_key
+        data_type: INTEGER
   - name: dim_sales_agent
     config:
       contract:

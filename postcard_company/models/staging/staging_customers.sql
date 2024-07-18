@@ -67,15 +67,36 @@ reseller_type2_processed AS (
 
 customers_union AS (
 
-SELECT reseller_id, customer_key, NULL AS customer_id , customer_first_name, customer_last_name, customer_email  FROM reseller_type1_processed
+SELECT 
+    reseller_id, 
+    customer_key, 
+    NULL AS customer_id, 
+    customer_first_name, 
+    customer_last_name, 
+    customer_email  
+FROM reseller_type1_processed
 
 UNION 
 
-SELECT reseller_id, customer_key, NULL AS customer_id, customer_first_name, customer_last_name, customer_email  FROM reseller_type2_processed
+SELECT 
+    reseller_id, 
+    customer_key, 
+    NULL AS customer_id, 
+    customer_first_name, 
+    customer_last_name, 
+    customer_email  
+FROM reseller_type2_processed
 
 UNION
 
-SELECT 0 AS reseller_id, customer_key, customer_id, customer_first_name, customer_last_name, customer_email  FROM customers_main
+SELECT 
+    0 AS reseller_id, 
+    customer_key, 
+    customer_id, 
+    customer_first_name, 
+    customer_last_name, 
+    customer_email  
+FROM customers_main
 )
 
 

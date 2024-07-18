@@ -13,5 +13,4 @@ SELECT
     customer_last_name, 
     customer_email, 
     sales_agent_key
-FROM 
-    {{ref('staging_customers')}}
+FROM {{ref('staging_customers')}}

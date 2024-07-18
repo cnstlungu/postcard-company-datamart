@@ -6,8 +6,7 @@
 
 SELECT
       id AS geography_key,
-      cityname as city_name,
-      countryname as country_name,
-      regionname as region_name
-FROM
-      {{ ref('geography') }}
+      cityname AS city_name,
+      countryname AS country_name,
+      regionname AS region_name
+FROM {{ ref('geography') }}

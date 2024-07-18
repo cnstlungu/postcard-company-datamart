@@ -4,6 +4,5 @@ SELECT
     reseller_id, 
     reseller_name, 
     commission_pct, 
-    CURRENT_TIMESTAMP AS loaded_timestamp 
-
+    CURRENT_TIMESTAMP AS loaded_timestamp
 FROM {{ source('parquet_input','resellers') }}
