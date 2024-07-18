@@ -66,6 +66,8 @@ models:
         data_type: VARCHAR
         constraints:
           - type: primary_key
+      - name: original_customer_id
+        data_type: BIGINT
       - name: customer_first_name
         data_type: VARCHAR
       - name: customer_last_name
