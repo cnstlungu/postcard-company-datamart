@@ -1,7 +1,8 @@
 {{ config(
-    materialized = 'table',
+    materialized = 'incremental',
     unique_key = ['customer_key', 'product_key', 'channel_key', 'bought_date_key', 'geography_key', 'sales_agent_key'],
-    schema = 'core'
+    schema = 'core',
+    on_schema_change ='fail'
 ) }}
 
 SELECT

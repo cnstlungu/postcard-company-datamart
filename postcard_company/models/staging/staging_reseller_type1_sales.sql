@@ -1,7 +1,10 @@
 {{
     config(
         materialized='incremental',
-        schema='staging'
+        schema='staging',
+        partitioned_by = 'created_date',
+        unique_key = 'transaction_id',
+        on_schema_change = 'fail'
     )
 }}
 
