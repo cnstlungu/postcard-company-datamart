@@ -1,11 +1,14 @@
 {{
     config(
         materialized='incremental',
-        schema='staging'
+        schema='staging',
+        partitioned_by='bought_date',
+        unique_key = 'transaction_id',
+        on_schema_change = 'fail'
     )
 }}
 
-WITH 
+WITH
 
   {% if is_incremental() %}
 
@@ -20,9 +23,7 @@ select max(loaded_timestamp) as max_transaction  from {{ this }}
 
 trans_main AS (
   SELECT
-    {{ dbt_utils.generate_surrogate_key(
-      [ '0', 'customer_id']
-    ) }} AS customer_key,
+    {{ dbt_utils.generate_surrogate_key([ '0', 'customer_id']) }} AS customer_key,
     customer_id,
     transaction_id,
     product_id,
