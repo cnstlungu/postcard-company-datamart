@@ -6,6 +6,7 @@ The company sells both directly but also through resellers in the majority of Eu
 
 This model is used by my other projects:
 - [Portable Data Stack with Mage](https://github.com/cnstlungu/portable-data-stack-mage)
+- [Portable Data Stack with SQLMesh](https://github.com/cnstlungu/portable-data-stack-sqlmesh)
 
 # Data model
 
