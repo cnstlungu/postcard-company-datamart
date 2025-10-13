@@ -17,6 +17,8 @@ models:
       contract:
         enforced: true
     columns:
+      - name: sales_key
+        data_type: VARCHAR
       - name: channel_key
         data_type: INTEGER
       - name: bought_date_key

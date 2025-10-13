@@ -1,11 +1,15 @@
 {{ config(
     materialized = 'incremental',
-    unique_key = ['customer_key', 'product_key', 'channel_key', 'bought_date_key', 'geography_key', 'sales_agent_key'],
+    unique_key = ['sales_key'],
     schema = 'core',
     on_schema_change ='fail'
 ) }}
 
 SELECT
+
+    {{ dbt_utils.generate_surrogate_key(
+      [ "sales_agent_key", "transaction_id"]
+    ) }} AS sales_key,
     customer_key,
     transaction_id,
     product_key,
