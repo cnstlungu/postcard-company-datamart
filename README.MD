@@ -42,7 +42,7 @@ The data is generated as parquet files by a Python script `generator/generate.py
 
 2. Rename `shared\db\datamart.duckdb.example` to `shared\db\datamart.duckdb` or initiate an empty database there with the same name.
 
-3. Create a Python Virtual Environment
+3. Create a Python Virtual Environment (ensure at least Python 3.10 is installed)
 
 `python3 -m venv .venv`
 
