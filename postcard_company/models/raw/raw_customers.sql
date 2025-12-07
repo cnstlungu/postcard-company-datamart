@@ -5,5 +5,10 @@ SELECT
     first_name,
     last_name,
     email,
+    phone_number,
+    address,
+    city,
+    country,
+    postal_code,
     CURRENT_TIMESTAMP AS loaded_timestamp 
 FROM {{ source('parquet_input','customers') }}
