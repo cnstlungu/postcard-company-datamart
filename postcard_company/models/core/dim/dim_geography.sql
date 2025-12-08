@@ -1,6 +1,6 @@
 {{ config(
       materialized = 'table',
-      unique_key = 'geographykey',
+      unique_key = 'geography_key',
       schema = 'core'
 ) }}
 

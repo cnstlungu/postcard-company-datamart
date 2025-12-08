@@ -18,7 +18,7 @@ WITH latest_transaction AS (
 trans_resellers AS (
 SELECT 
     {{ dbt_utils.generate_surrogate_key(
-      [ "'reseller-id'", "'customer_email'"]
+      [ '"reseller-id"', 'customer_email']
     ) }} AS customer_key,
     productName AS product_name,
     qty AS quantity, 
