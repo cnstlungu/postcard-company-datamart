@@ -2,14 +2,20 @@ models:
   - name: dim_channel
     config:
       contract:
-        enforced: true  
+        enforced: true
     columns:
       - name: channel_key
         data_type: INTEGER
         constraints:
           - type: primary_key
+        tests:
+          - unique
+          - not_null
       - name: channel_name
         data_type: VARCHAR
+        tests:
+          - unique
+          - not_null
       - name: original_channel_id
         data_type: INTEGER
   - name: fact_sales
@@ -19,42 +25,68 @@ models:
     columns:
       - name: sales_key
         data_type: VARCHAR
+        tests:
+          - unique
+          - not_null
       - name: channel_key
         data_type: INTEGER
+        tests:
+          - relationships:
+              to: ref('dim_channel')
+              field: channel_key
       - name: bought_date_key
         data_type: INTEGER
       - name: commissionpaid
-        data_type: DOUBLE 
+        data_type: DOUBLE
       - name: commissionpct
-        data_type: DOUBLE  
+        data_type: DOUBLE
       - name: customer_key
-        data_type: VARCHAR   
+        data_type: VARCHAR
+        tests:
+          - relationships:
+              to: ref('dim_customer')
+              field: customer_key
       - name: geography_key
-        data_type: INTEGER  
+        data_type: INTEGER
+        tests:
+          - relationships:
+              to: ref('dim_geography')
+              field: geography_key
       - name: product_key
-        data_type: VARCHAR    
+        data_type: VARCHAR
+        tests:
+          - relationships:
+              to: ref('dim_product')
+              field: product_key
       - name: product_price
-        data_type: DOUBLE  
+        data_type: DOUBLE
       - name: qty
-        data_type: INTEGER            
+        data_type: INTEGER
       - name: total_amount
-        data_type: DOUBLE   
+        data_type: DOUBLE
       - name: transaction_id
         data_type: BIGINT
       - name: sales_agent_key
         data_type: INTEGER
+        tests:
+          - relationships:
+              to: ref('dim_sales_agent')
+              field: sales_agent_key
   - name: dim_sales_agent
     config:
       contract:
         enforced: true
       constraints:
         - type: primary_key
-          columns: ['sales_agent_key']
+          columns: ["sales_agent_key"]
     columns:
       - name: sales_agent_key
         data_type: INTEGER
         constraints:
           - type: primary_key
+        tests:
+          - unique
+          - not_null
       - name: reseller_name
         data_type: VARCHAR
       - name: original_reseller_id
@@ -64,12 +96,15 @@ models:
   - name: dim_customer
     config:
       contract:
-        enforced: true  
+        enforced: true
     columns:
       - name: customer_key
         data_type: VARCHAR
         constraints:
           - type: primary_key
+        tests:
+          - unique
+          - not_null
       - name: original_customer_id
         data_type: BIGINT
       - name: customer_first_name
@@ -78,32 +113,50 @@ models:
         data_type: VARCHAR
       - name: customer_email
         data_type: VARCHAR
+        tests:
+          - not_null
+      - name: customer_phone
+        data_type: VARCHAR
+      - name: customer_address
+        data_type: VARCHAR
+      - name: customer_city
+        data_type: VARCHAR
+      - name: customer_country
+        data_type: VARCHAR
+      - name: customer_postal_code
+        data_type: VARCHAR
       - name: sales_agent_key
         data_type: INTEGER
   - name: dim_geography
     config:
       contract:
-        enforced: true  
+        enforced: true
     columns:
       - name: geography_key
         data_type: INTEGER
         constraints:
           - type: primary_key
+        tests:
+          - unique
+          - not_null
       - name: country_name
         data_type: VARCHAR
       - name: city_name
         data_type: VARCHAR
       - name: region_name
-        data_type: VARCHAR 
+        data_type: VARCHAR
   - name: dim_product
     config:
       contract:
-        enforced: true  
+        enforced: true
     columns:
       - name: product_key
         data_type: VARCHAR
         constraints:
           - type: primary_key
+        tests:
+          - unique
+          - not_null
       - name: product_name
         data_type: VARCHAR
       - name: geography_key

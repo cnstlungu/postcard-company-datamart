@@ -24,7 +24,7 @@ select MAX(loaded_timestamp) AS max_transaction  FROM {{ this }}
 trans_reseller AS (
   SELECT
     {{ dbt_utils.generate_surrogate_key(
-      [ "'reseller-id'", "'Customer Email'"]
+      [ '"Reseller ID"', '"Customer Email"']
     ) }} AS customer_key,
     "Product name" AS product_name, 
     Quantity AS quantity, 
