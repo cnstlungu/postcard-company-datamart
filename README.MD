@@ -8,6 +8,7 @@ This model is used by my other projects:
 - [Portable Data Stack with Mage](https://github.com/cnstlungu/portable-data-stack-mage)
 - [Portable Data Stack with SQLMesh](https://github.com/cnstlungu/portable-data-stack-sqlmesh)
 - [Portable Data Stack with Dagster](https://github.com/cnstlungu/portable-data-stack-dagster)
+- [Portable Data Stack with Airflow](https://github.com/cnstlungu/portable-data-stack-airflow)
 
 # Data model
 
