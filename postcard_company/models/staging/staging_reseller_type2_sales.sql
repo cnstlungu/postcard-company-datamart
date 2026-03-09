@@ -34,7 +34,7 @@ SELECT
     CURRENT_TIMESTAMP AS loaded_timestamp
 FROM {{ ref('raw_reseller_type2_sales') }}
 {% if is_incremental() %}
-WHERE CURRENT_TIMESTAMP > (SELECT max_transaction_timestamp FROM latest_transaction LIMIT 1)
+WHERE loaded_timestamp > (SELECT max_transaction_timestamp FROM latest_transaction LIMIT 1)
 {% endif %}
 )
 SELECT
