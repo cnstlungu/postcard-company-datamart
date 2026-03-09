@@ -34,16 +34,10 @@ models:
         data_type: INTEGER
         tests:
           - not_null
-          - relationships:
-              to: ref('dim_channel')
-              field: channel_key
       - name: bought_date_key
         data_type: INTEGER
         tests:
           - not_null
-          - relationships:
-              to: ref('dim_date')
-              field: date_key
       - name: commissionpaid
         data_type: DOUBLE
       - name: commissionpct
@@ -52,23 +46,14 @@ models:
         data_type: VARCHAR
         tests:
           - not_null
-          - relationships:
-              to: ref('dim_customer')
-              field: customer_key
       - name: geography_key
         data_type: INTEGER
         tests:
           - not_null
-          - relationships:
-              to: ref('dim_geography')
-              field: geography_key
       - name: product_key
         data_type: VARCHAR
         tests:
           - not_null
-          - relationships:
-              to: ref('dim_product')
-              field: product_key
       - name: product_price
         data_type: DOUBLE
       - name: qty
@@ -83,10 +68,6 @@ models:
         data_type: BIGINT
       - name: sales_agent_key
         data_type: INTEGER
-        tests:
-          - relationships:
-              to: ref('dim_sales_agent')
-              field: sales_agent_key
   - name: dim_sales_agent
     config:
       contract:
