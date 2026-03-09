@@ -1,6 +1,3 @@
-## Refer to Using dbt with Dagster, part one for info about this file:
-## https://docs.dagster.io/integrations/dbt/using-dbt-with-dagster/part-one
-
 name: 'postcard_company'
 version: '1.0.0'
 config-version: 2

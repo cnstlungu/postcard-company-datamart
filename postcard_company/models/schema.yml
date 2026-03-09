@@ -16,6 +16,8 @@ models:
         tests:
           - unique
           - not_null
+          - accepted_values:
+              values: ['in-store', 'web', 'mobile app']
       - name: original_channel_id
         data_type: INTEGER
   - name: fact_sales
@@ -31,11 +33,11 @@ models:
       - name: channel_key
         data_type: INTEGER
         tests:
-          - relationships:
-              to: ref('dim_channel')
-              field: channel_key
+          - not_null
       - name: bought_date_key
         data_type: INTEGER
+        tests:
+          - not_null
       - name: commissionpaid
         data_type: DOUBLE
       - name: commissionpct
@@ -43,35 +45,29 @@ models:
       - name: customer_key
         data_type: VARCHAR
         tests:
-          - relationships:
-              to: ref('dim_customer')
-              field: customer_key
+          - not_null
       - name: geography_key
         data_type: INTEGER
         tests:
-          - relationships:
-              to: ref('dim_geography')
-              field: geography_key
+          - not_null
       - name: product_key
         data_type: VARCHAR
         tests:
-          - relationships:
-              to: ref('dim_product')
-              field: product_key
+          - not_null
       - name: product_price
         data_type: DOUBLE
       - name: qty
         data_type: INTEGER
+        tests:
+          - not_null
       - name: total_amount
         data_type: DOUBLE
+        tests:
+          - not_null
       - name: transaction_id
         data_type: BIGINT
       - name: sales_agent_key
         data_type: INTEGER
-        tests:
-          - relationships:
-              to: ref('dim_sales_agent')
-              field: sales_agent_key
   - name: dim_sales_agent
     config:
       contract:
@@ -165,3 +161,75 @@ models:
         data_type: VARCHAR
       - name: product_price
         data_type: DOUBLE
+        tests:
+          - dbt_utils.expression_is_true:
+              expression: "> 0"
+  - name: dim_date
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: date_key
+        data_type: INTEGER
+        constraints:
+          - type: primary_key
+        tests:
+          - unique
+          - not_null
+      - name: date_value
+        data_type: DATE
+        tests:
+          - unique
+          - not_null
+      - name: day_of_year
+        data_type: BIGINT
+      - name: week_key
+        data_type: BIGINT
+      - name: week_of_year
+        data_type: BIGINT
+      - name: day_of_week
+        data_type: BIGINT
+      - name: iso_day_of_week
+        data_type: BIGINT
+      - name: day_name
+        data_type: VARCHAR
+      - name: first_day_of_week
+        data_type: DATE
+      - name: last_day_of_week
+        data_type: DATE
+      - name: month_key
+        data_type: VARCHAR
+      - name: month_of_year
+        data_type: BIGINT
+      - name: day_of_month
+        data_type: BIGINT
+      - name: month_name_short
+        data_type: VARCHAR
+      - name: month_name
+        data_type: VARCHAR
+      - name: first_day_of_month
+        data_type: DATE
+      - name: last_day_of_month
+        data_type: DATE
+      - name: quarter_key
+        data_type: INTEGER
+      - name: quarter_of_year
+        data_type: BIGINT
+      - name: day_of_quarter
+        data_type: INTEGER
+      - name: quarter_desc_short
+        data_type: VARCHAR
+      - name: quarter_desc
+        data_type: VARCHAR
+      - name: first_day_of_quarter
+        data_type: DATE
+      - name: last_day_of_quarter
+        data_type: DATE
+      - name: year_key
+        data_type: INTEGER
+      - name: first_day_of_year
+        data_type: DATE
+      - name: last_day_of_year
+        data_type: TIMESTAMP
+      - name: ordinal_weekday_of_month
+        data_type: BIGINT

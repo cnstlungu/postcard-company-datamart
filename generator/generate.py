@@ -2,7 +2,7 @@ from random import randrange, choice, randint
 from pandas import DataFrame
 from pyarrow import Table
 import pyarrow.parquet as pq
-from os import environ
+import os
 from faker import Faker
 from datetime import datetime, timedelta
 
@@ -217,9 +217,11 @@ def cleanup(directory, ext):
 def generate_parquet_file(name, records):
     df = DataFrame(records)
     table = Table.from_pandas(df)
-    pq.write_table(table, f"{environ['INPUT_FILES_PATH']}/{name}.parquet")
+    pq.write_table(table, f"{os.environ['INPUT_FILES_PATH']}/{name}.parquet")
 
-generate_main()
+n_transactions = int(os.environ.get('N_TRANSACTIONS', 1000000))
+
+generate_main(n=n_transactions)
 generate_channels()
 generate_customers()
 generate_products()

@@ -1,5 +1,6 @@
 .venv/
 .vscode/
+.idea/
 logs/
 target/
 .env
