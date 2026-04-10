@@ -1,0 +1,4 @@
+Faker==38.2.0
+pandas==2.3.3
+pyarrow==22.0.0
+dbt-duckdb==1.9.6

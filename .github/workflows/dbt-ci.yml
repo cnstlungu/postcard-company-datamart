@@ -1,0 +1,68 @@
+name: dbt CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dbt-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  dbt:
+    runs-on: ubuntu-latest
+    env:
+      DBT_PROFILES_DIR: ${{ github.workspace }}/postcard_company
+      DUCKDB_FILE_PATH: ${{ github.workspace }}/shared/db/datamart.duckdb
+      INPUT_FILES_PATH: ${{ github.workspace }}/shared/parquet
+      N_TRANSACTIONS: 10000
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements-ci.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-ci.txt
+
+      - name: Prepare DuckDB file and parquet directory
+        run: |
+          mkdir -p shared/db shared/parquet
+          rm -f shared/db/datamart.duckdb shared/db/datamart.duckdb.wal
+          find shared/parquet -maxdepth 1 -name '*.parquet' -delete
+
+      - name: Generate source data
+        run: python generator/generate.py
+
+      - name: Install dbt packages
+        working-directory: postcard_company
+        run: dbt deps
+
+      - name: Run dbt seed
+        working-directory: postcard_company
+        run: dbt seed
+
+      - name: Run dbt compile
+        working-directory: postcard_company
+        run: dbt compile
+
+      - name: Run dbt models
+        working-directory: postcard_company
+        run: dbt run
+
+      - name: Run dbt tests
+        working-directory: postcard_company
+        run: dbt test
