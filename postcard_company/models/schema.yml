@@ -230,6 +230,6 @@ models:
       - name: first_day_of_year
         data_type: DATE
       - name: last_day_of_year
-        data_type: TIMESTAMP
+        data_type: DATE
       - name: ordinal_weekday_of_month
         data_type: BIGINT
