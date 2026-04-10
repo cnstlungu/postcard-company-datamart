@@ -46,27 +46,23 @@ The data is generated as parquet files by a Python script `generator/generate.py
 
 3. Create a Python Virtual Environment (ensure at least Python 3.10 is installed)
 
-`python3 -m venv .venv`
+`uv venv .venv`
 
-4. Add environment variables to the virtual environment
-
-`cat .env >> .venv/bin/activate`
-
-5. Activate the Python venv
+4. Activate the Python venv
 
 `source .venv/bin/activate`
 
-6. Change the working directory to `generator`
+5. Add environment variables to the virtual environment
 
-`cd generator`
+`cat .env >> .venv/bin/activate`
 
-7. Install the required packages
+6. Install the required packages with `uv pip`
 
-`pip install -r requirements.txt`
+`uv pip install -r requirements-ci.txt`
 
-8. Generate the data
+7. Generate the data
 
-`python3 generate.py`
+`python generator/generate.py`
 
 The generated data will be under `shared/parquet`.
 
@@ -77,16 +73,22 @@ The generated data will be under `shared/parquet`.
 
 `source .venv/bin/activate`
 
-2. Change directory to `postcard_company`
+2. Run `dbt deps` to install dependencies
 
-`cd postcard_company`
+`dbt deps --project-dir postcard_company`
 
-3. Run `dbt deps` to install dependencies
+3. Run `dbt seed` to import the seed (static) data
 
-4. Run `dbt seed` to import the seed (static) data
+`dbt seed --project-dir postcard_company`
 
-5. Run `dbt compile` to compile the project
+4. Run `dbt compile` to compile the project
 
-6. Run `dbt run` to run the models
+`dbt compile --project-dir postcard_company`
 
-7. Run `dbt test` to run the tests
+5. Run `dbt run` to run the models
+
+`dbt run --project-dir postcard_company`
+
+6. Run `dbt test` to run the tests
+
+`dbt test --project-dir postcard_company`
