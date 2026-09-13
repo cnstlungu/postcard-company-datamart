@@ -20,10 +20,16 @@ fake = Faker()
 # Each source draws from this shared counter.
 transaction_id_counter = itertools.count(0)
 
-# Sales land in a window ending today rather than at a hard-coded past date,
-# so the dashboards show current data whenever the stack is run.
+# Sales land in a window ending on DATA_END_DATE, which defaults to today, so
+# the dashboards show current data whenever the stack is run. Pin it to an
+# explicit ISO date (DATA_END_DATE=2026-09-13) to reproduce an earlier dataset:
+# with the same SEED and window, that regenerates the data byte for byte.
 DATA_WINDOW_MONTHS = int(os.environ.get('DATA_WINDOW_MONTHS', 24))
-DATA_END = datetime.combine(date.today(), datetime.min.time())
+_end_date = os.environ.get('DATA_END_DATE')
+DATA_END = datetime.combine(
+    date.fromisoformat(_end_date) if _end_date else date.today(),
+    datetime.min.time(),
+)
 DATA_START = DATA_END - timedelta(days=round(DATA_WINDOW_MONTHS * 30.44))
 
 # --- Assets & Constants moved from assets.py ---
