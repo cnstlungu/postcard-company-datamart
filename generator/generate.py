@@ -1,12 +1,36 @@
+import itertools
+import random
 from random import randrange, choice, randint
 from pandas import DataFrame
 from pyarrow import Table
 import pyarrow.parquet as pq
 import os
 from faker import Faker
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
+
+# Seed both generators so a run is reproducible. Change SEED to get a
+# different but equally repeatable dataset.
+SEED = int(os.environ.get('SEED', 42))
+random.seed(SEED)
+Faker.seed(SEED)
 
 fake = Faker()
+
+# Transaction IDs have to be unique across every source, not just within one.
+# Each source draws from this shared counter.
+transaction_id_counter = itertools.count(0)
+
+# Sales land in a window ending on DATA_END_DATE, which defaults to today, so
+# the dashboards show current data whenever the stack is run. Pin it to an
+# explicit ISO date (DATA_END_DATE=2026-09-13) to reproduce an earlier dataset:
+# with the same SEED and window, that regenerates the data byte for byte.
+DATA_WINDOW_MONTHS = int(os.environ.get('DATA_WINDOW_MONTHS', 24))
+_end_date = os.environ.get('DATA_END_DATE')
+DATA_END = datetime.combine(
+    date.fromisoformat(_end_date) if _end_date else date.today(),
+    datetime.min.time(),
+)
+DATA_START = DATA_END - timedelta(days=round(DATA_WINDOW_MONTHS * 30.44))
 
 # --- Assets & Constants moved from assets.py ---
 
@@ -29,7 +53,7 @@ def get_channel_distribution(channel):
     elif channel == 'reseller':
         return [*1*('in-store',), *3*('web',), *3*('mobile app',) ]
 
-def random_date(start=datetime(2019,1,1), end=datetime(2021,1,31)):
+def random_date(start=DATA_START, end=DATA_END):
     """Generate a random datetime between `start` and `end`"""
     result =  start + timedelta(
         # Get a random amount of seconds between `start` and `end`
@@ -78,7 +102,7 @@ def generate_main(n=1000000):
         qty = randrange(1,6)
 
         transaction = {
-        	       'transaction_id': i,
+        	       'transaction_id': next(transaction_id_counter),
         	       'customer_id': randrange(1,100000),
                        'product_id': product['product_id'],
                        'amount': product['price'] * qty,
@@ -159,7 +183,7 @@ def generate_type1_reseller_data(n=50000):
                         'Series City': product['city'],
                         'Created Date': boughtdate,
                         'Reseller ID' : resellerid,
-                        'Transaction ID': i
+                        'Transaction ID': next(transaction_id_counter)
                         }
 
             export.append(transaction)
@@ -201,7 +225,7 @@ def generate_type2_reseller_data(n = 50000 ):
                         'dateCreated': boughtdate,
                         'seriesCity': product['city'],
                         'Created Date': str(bought),
-                        'transactionID': i
+                        'transactionID': next(transaction_id_counter)
                         }
             export.append(transaction)
 

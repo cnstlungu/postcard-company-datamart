@@ -62,3 +62,61 @@ jobs:
 
       - name: Run dbt tests
         run: dbt test --project-dir postcard_company
+
+      # Renumbering transaction ids under an existing warehouse leaves the
+      # incremental models holding their old rows. Regenerating with a larger
+      # N_TRANSACTIONS shifts where the reseller feeds start numbering, which is
+      # the same hazard an upgrade across a generator change produces.
+      - name: Upgrade regression - renumbered source ids
+        env:
+          N_TRANSACTIONS: 20000
+        run: |
+          python generator/generate.py
+
+          echo "--- plain dbt run: should NOT be enough ---"
+          dbt run --project-dir postcard_company
+          python - <<'CHECK'
+          import duckdb, os
+          c = duckdb.connect(os.environ["DUCKDB_FILE_PATH"], read_only=True)
+          n = c.execute("select count(*) from postcard_company_core.fact_sales").fetchone()[0]
+          c.close()
+          print(f"fact_sales after a plain run: {n:,} (a clean build is 220,000)")
+          assert n != 220_000, (
+              "expected stale rows here; if this passes, the check has stopped "
+              "exercising the upgrade hazard and needs revisiting"
+          )
+          CHECK
+
+          echo "--- the upgrade documented in the README ---"
+          dbt run --full-refresh --project-dir postcard_company \
+            --select staging_reseller_type1_sales+ staging_reseller_type2_sales+
+          python - <<'CHECK'
+          import duckdb, os
+          c = duckdb.connect(os.environ["DUCKDB_FILE_PATH"], read_only=True)
+          q = lambda s: c.execute(s).fetchone()[0]
+          expected = {
+              "postcard_company_staging.staging_transactions_main": 20_000,
+              "postcard_company_staging.staging_reseller_type1_sales": 100_000,
+              "postcard_company_staging.staging_reseller_type2_sales": 100_000,
+              "postcard_company_core.fact_sales": 220_000,
+          }
+          bad = []
+          for table, want in expected.items():
+              got = q(f"select count(*) from {table}")
+              print(f"{table:<55} {got:>8,}  expected {want:>8,}")
+              if got != want:
+                  bad.append(f"{table}: {got} != {want}")
+          dangling = q("""
+              select count(*) from postcard_company_core.fact_sales f
+              left join postcard_company_core.dim_product p on f.product_key = p.product_key
+              where p.product_key is null
+          """)
+          print(f"{'dangling product references':<55} {dangling:>8,}  expected        0")
+          if dangling:
+              bad.append(f"dangling product references: {dangling}")
+          c.close()
+          assert not bad, "upgrade did not restore a clean warehouse: " + "; ".join(bad)
+          CHECK
+
+      - name: Run dbt tests after the upgrade
+        run: dbt test --project-dir postcard_company

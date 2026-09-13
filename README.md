@@ -66,6 +66,27 @@ The data is generated as parquet files by a Python script `generator/generate.py
 
 The generated data will be under `shared/parquet`.
 
+The generator is seeded, so the same inputs always produce the same dataset.
+Three environment variables control it:
+
+| Variable | Default | Effect |
+|---|---|---|
+| `SEED` | `42` | Seeds both `random` and `Faker`. Change it for a different but still repeatable dataset. |
+| `N_TRANSACTIONS` | `1000000` | Number of direct-sale transactions. Each reseller feed adds a further 100,000 rows. |
+| `DATA_WINDOW_MONTHS` | `24` | Sales are spread over this many months, ending on `DATA_END_DATE`. |
+| `DATA_END_DATE` | today | Last day sales can fall on, as an ISO date. Defaults to today so the data is never stale; pin it to reproduce an earlier dataset exactly. |
+
+`SEED` alone does not make a run reproducible **across days**, because the date
+window moves with the calendar. To regenerate a dataset byte for byte, pin both:
+
+```bash
+SEED=42 DATA_END_DATE=2026-09-13 python generator/generate.py
+```
+
+For a quick run:
+
+`SEED=42 N_TRANSACTIONS=20000 python generator/generate.py`
+
 
 ## Running the dbt model
 
@@ -92,3 +113,36 @@ The generated data will be under `shared/parquet`.
 6. Run `dbt test` to run the tests
 
 `dbt test --project-dir postcard_company`
+
+
+## Upgrading an existing warehouse
+
+The models under `staging/` and `core/` are incremental, so they keep rows that
+are already there. That is fine while transaction IDs are stable, but any change
+that **renumbers** them — upgrading across a generator change, or regenerating
+with a different `N_TRANSACTIONS` — leaves the old rows in place alongside the
+new ones. The symptoms are inflated row counts, dimension keys in `fact_sales`
+that no longer resolve, and a failing uniqueness test.
+
+`dbt run` on its own will not repair this: the incremental filter only adds. Full
+refresh the two reseller models and everything downstream of them:
+
+```bash
+dbt run --full-refresh --project-dir postcard_company \
+  --select staging_reseller_type1_sales+ staging_reseller_type2_sales+
+```
+
+The `+` matters — it pulls in `staging_transactions` and `fact_sales`, which are
+built from those models. Refreshing the reseller models alone leaves `fact_sales`
+holding rows keyed on the old IDs.
+
+`staging_transactions_main` is not in that set: direct-sale IDs are assigned
+before the reseller feeds, so they do not move when the reseller numbering does.
+
+Then confirm:
+
+```bash
+dbt test --project-dir postcard_company
+```
+
+CI exercises this path on every run, so the command above is kept honest.
