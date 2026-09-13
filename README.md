@@ -66,6 +66,19 @@ The data is generated as parquet files by a Python script `generator/generate.py
 
 The generated data will be under `shared/parquet`.
 
+The generator is seeded, so the same inputs always produce the same dataset.
+Three environment variables control it:
+
+| Variable | Default | Effect |
+|---|---|---|
+| `SEED` | `42` | Seeds both `random` and `Faker`. Change it for a different but still repeatable dataset. |
+| `N_TRANSACTIONS` | `1000000` | Number of direct-sale transactions. Each reseller feed adds a further 100,000 rows. |
+| `DATA_WINDOW_MONTHS` | `24` | Sales are spread over this many months ending today, so the data is never stale. |
+
+For a quick run:
+
+`SEED=42 N_TRANSACTIONS=20000 python generator/generate.py`
+
 
 ## Running the dbt model
 

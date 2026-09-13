@@ -1,9 +1,12 @@
+-- transaction_id is only unique within a reseller, so the grain of this model is
+-- the pair. Keying on transaction_id alone would let an incremental run collapse
+-- two resellers' rows into one.
 {{
     config(
         materialized='incremental',
         schema='staging',
         partitioned_by = 'created_date',
-        unique_key = 'transaction_id',
+        unique_key = ['reseller_id', 'transaction_id'],
         on_schema_change = 'fail'
     )
 }}

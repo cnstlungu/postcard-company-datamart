@@ -13,3 +13,4 @@ __pycache__/
 *.duckdb
 *.parquet
 *.wal
+.DS_Store
