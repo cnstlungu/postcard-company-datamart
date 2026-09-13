@@ -45,6 +45,11 @@ models:
     data_type: INTEGER
     tests:
     - not_null
+    - relationships:
+        to: ref('dim_date')
+        field: date_key
+    description: Integer date of the sale in YYYYMMDD form. Tested against dim_date so that a sale generated
+      outside the calendar fails the build instead of quietly dropping out of every date-based report.
   - name: commissionpaid
     data_type: DOUBLE
     description: Commission value on this sale. Null for direct sales.
@@ -259,8 +264,9 @@ models:
     data_type: DATE
   - name: ordinal_weekday_of_month
     data_type: BIGINT
-  description: Date spine covering 2015 to 2030, generated rather than sourced, so every bought_date resolves
-    to a row.
+  description: Date spine generated rather than sourced, so every bought_date resolves to a row. Its range
+    comes from the calendar_start / calendar_end vars in dbt_project.yml; the generator mirrors them and
+    refuses to produce sales outside them.
 - name: raw_channels
   description: Passthrough of the channels extract, with a load timestamp. No business logic.
 - name: raw_customers

@@ -39,6 +39,12 @@ jobs:
       - name: Install dependencies
         run: uv pip install --system -r requirements-ci.txt
 
+      # Cheap and self-contained: runs the generator into a temporary directory
+      # and checks what it produced. Ahead of the pipeline so a bad dataset
+      # fails here rather than as a puzzling dbt test failure later.
+      - name: Generator regression checks
+        run: python generator/checks.py
+
       - name: Prepare DuckDB file and parquet directory
         run: |
           mkdir -p shared/db shared/parquet

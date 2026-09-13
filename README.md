@@ -67,7 +67,7 @@ The data is generated as parquet files by a Python script `generator/generate.py
 The generated data will be under `shared/parquet`.
 
 The generator is seeded, so the same inputs always produce the same dataset.
-Three environment variables control it:
+Four environment variables control it:
 
 | Variable | Default | Effect |
 |---|---|---|
@@ -86,6 +86,22 @@ SEED=42 DATA_END_DATE=2026-09-13 python generator/generate.py
 For a quick run:
 
 `SEED=42 N_TRANSACTIONS=20000 python generator/generate.py`
+
+The window also has to stay inside `dim_date`, whose range is declared once as
+the `calendar_start` / `calendar_end` vars in
+[`postcard_company/dbt_project.yml`](postcard_company/dbt_project.yml) and
+mirrored by `CALENDAR_START` / `CALENDAR_END` in the generator. Sales outside
+that calendar would produce `fact_sales` rows whose `bought_date_key` joins to
+nothing, so the generator refuses to run and names the setting to change. To
+model a longer history, widen the calendar in both places — CI checks that they
+agree, and a `relationships` test on `bought_date_key` catches any breach that
+reaches the warehouse.
+
+After changing the generator, check it with:
+
+```bash
+python generator/checks.py
+```
 
 
 ## Running the dbt model

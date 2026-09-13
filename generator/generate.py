@@ -6,7 +6,7 @@ from pyarrow import Table
 import pyarrow.parquet as pq
 import os
 from faker import Faker
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 
 # Seed both generators so a run is reproducible. Change SEED to get a
 # different but equally repeatable dataset.
@@ -20,17 +20,32 @@ fake = Faker()
 # Each source draws from this shared counter.
 transaction_id_counter = itertools.count(0)
 
-# Sales land in a window ending on DATA_END_DATE, which defaults to today, so
-# the dashboards show current data whenever the stack is run. Pin it to an
-# explicit ISO date (DATA_END_DATE=2026-09-13) to reproduce an earlier dataset:
-# with the same SEED and window, that regenerates the data byte for byte.
+# dim_date materialises a fixed calendar. Every generated sale has to fall
+# inside it, or fact_sales ends up with bought_date_key values that join to no
+# row in dim_date. Keep these in step with the calendar_start / calendar_end
+# vars in postcard_company/dbt_project.yml - CI checks that the two agree.
+CALENDAR_START = date(2010, 1, 1)
+CALENDAR_END = date(2035, 12, 31)
+
+# Sales land in a window of DATA_WINDOW_MONTHS ending on DATA_END_DATE, which
+# defaults to today, so the dashboards show current data whenever the stack is
+# run. Pin it to an explicit ISO date (DATA_END_DATE=2026-09-13) to reproduce
+# an earlier dataset: with the same SEED and window, that regenerates the data
+# byte for byte. Both ends of the window are inclusive.
 DATA_WINDOW_MONTHS = int(os.environ.get('DATA_WINDOW_MONTHS', 24))
 _end_date = os.environ.get('DATA_END_DATE')
-DATA_END = datetime.combine(
-    date.fromisoformat(_end_date) if _end_date else date.today(),
-    datetime.min.time(),
-)
+DATA_END = date.fromisoformat(_end_date) if _end_date else date.today()
 DATA_START = DATA_END - timedelta(days=round(DATA_WINDOW_MONTHS * 30.44))
+
+if DATA_START < CALENDAR_START or DATA_END > CALENDAR_END:
+    raise SystemExit(
+        f"Refusing to generate: the requested window {DATA_START}..{DATA_END} "
+        f"falls outside dim_date, which covers {CALENDAR_START}..{CALENDAR_END}. "
+        f"Sales outside the calendar produce fact_sales rows whose date key "
+        f"resolves to no row in dim_date. Shorten DATA_WINDOW_MONTHS (currently "
+        f"{DATA_WINDOW_MONTHS}), move DATA_END_DATE, or widen the calendar in "
+        f"both this file and postcard_company/dbt_project.yml."
+    )
 
 # --- Assets & Constants moved from assets.py ---
 
@@ -54,11 +69,13 @@ def get_channel_distribution(channel):
         return [*1*('in-store',), *3*('web',), *3*('mobile app',) ]
 
 def random_date(start=DATA_START, end=DATA_END):
-    """Generate a random datetime between `start` and `end`"""
-    result =  start + timedelta(
-        # Get a random amount of seconds between `start` and `end`
-        seconds=randint(0, int((end - start).total_seconds())),)
-    return result.date()
+    """Pick a random calendar date between `start` and `end`, both included.
+
+    Sampling days directly rather than seconds from a range that stopped at
+    midnight on the final day: that left the final day a single reachable
+    instant, so the most recent day was in practice always empty.
+    """
+    return start + timedelta(days=randint(0, (end - start).days))
 
 # --- Product Generation ---
 
