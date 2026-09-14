@@ -6,11 +6,15 @@
       schema = 'core'
 ) }}
 
+-- The range comes from the calendar_start / calendar_end vars so the generator
+-- and this model cannot drift apart. generate_series rather than RANGE because
+-- RANGE stops short of its end date, which would leave the last declared day
+-- missing from the dimension.
 WITH generate_date AS (
         SELECT 
-            CAST(RANGE AS DATE) AS date_value 
+            CAST(generate_series AS DATE) AS date_value 
           FROM 
-            RANGE(DATE '2015-01-01', DATE '2030-12-31', INTERVAL 1 DAY)
+            generate_series(DATE '{{ var("calendar_start") }}', DATE '{{ var("calendar_end") }}', INTERVAL 1 DAY)
           )
    SELECT 
    

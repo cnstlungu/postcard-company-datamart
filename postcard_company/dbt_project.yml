@@ -18,6 +18,14 @@ clean-targets:         # directories to be removed by `dbt clean`
   - "target"
   - "dbt_packages"
 
+# The calendar dim_date materialises. Every generated sale has to fall inside
+# it, or fact_sales ends up with bought_date_key values that join to no row in
+# dim_date. generator/generate.py mirrors these and refuses to generate outside
+# them; CI checks that the two agree.
+vars:
+  calendar_start: '2010-01-01'
+  calendar_end: '2035-12-31'
+
 # Configuring models
 # Full documentation: https://docs.getdbt.com/docs/configuring-models
 
