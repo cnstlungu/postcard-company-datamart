@@ -57,6 +57,13 @@ jobs:
       - name: Install dbt packages
         run: dbt deps --project-dir postcard_company
 
+      # dbt v2 readiness gate. 1.12 ships the v2 (Fusion) parser behind this
+      # flag, so the project is checked against v2's stricter YAML and config
+      # rules on every PR without anything having to run v2 itself. It passes
+      # today; if it starts failing, something v2-incompatible was introduced.
+      - name: dbt v2 parser preflight
+        run: dbt parse --project-dir postcard_company --no-partial-parse --use-v2-parser
+
       - name: Run dbt seed
         run: dbt seed --project-dir postcard_company
 

@@ -5,7 +5,6 @@
     config(
         materialized='incremental',
         schema='staging',
-        partitioned_by = 'created_date',
         unique_key = ['reseller_id', 'transaction_id'],
         on_schema_change = 'fail'
     )

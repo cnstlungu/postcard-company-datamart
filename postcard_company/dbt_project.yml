@@ -33,7 +33,6 @@ vars:
 # as tables. These settings can be overridden in the individual model files
 # using the `{{ config(...) }}` macro.
 models:
-  +start: Jan 1 2000
   postcard_company:
     # Config indicated by + and applies to all files under models/example/
     +materialized: table
@@ -43,7 +42,10 @@ seeds:
     +enabled: true
     +schema: raw
     geography:
-      id: int
-      cityname: varchar(32)
-      countryname: varchar(32)
-      regionname: varchar(32)
+      # These belong under +column_types. Written bare they were silently
+      # ignored by dbt 1.x and are a hard error under dbt v2.
+      +column_types:
+        id: int
+        cityname: varchar(32)
+        countryname: varchar(32)
+        regionname: varchar(32)
