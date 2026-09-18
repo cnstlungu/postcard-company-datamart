@@ -17,10 +17,11 @@ models:
     - unique
     - not_null
     - accepted_values:
-        values:
-        - in-store
-        - web
-        - mobile app
+        arguments:
+          values:
+          - in-store
+          - web
+          - mobile app
   - name: original_channel_id
     data_type: INTEGER
   description: Sales channels a postcard can be bought through. Small static dimension; channel_key is
@@ -46,8 +47,9 @@ models:
     tests:
     - not_null
     - relationships:
-        to: ref('dim_date')
-        field: date_key
+        arguments:
+          to: ref('dim_date')
+          field: date_key
     description: Integer date of the sale in YYYYMMDD form. Tested against dim_date so that a sale generated
       outside the calendar fails the build instead of quietly dropping out of every date-based report.
   - name: commissionpaid
@@ -191,7 +193,8 @@ models:
     data_type: DOUBLE
     tests:
     - dbt_utils.expression_is_true:
-        expression: '> 0'
+        arguments:
+          expression: '> 0'
     description: List price. Asserted to be strictly positive.
   description: 'The postcard catalogue: one row per product, with its depicted city and list price.'
 - name: dim_date
@@ -336,9 +339,10 @@ models:
     - not_null
   tests:
   - dbt_utils.unique_combination_of_columns:
-      combination_of_columns:
-      - reseller_id
-      - transaction_id
+      arguments:
+        combination_of_columns:
+        - reseller_id
+        - transaction_id
 - name: staging_reseller_type2_sales
   description: Type 2 reseller sales, renamed and typed. Incremental on the (reseller_id, transaction_id)
     grain.
@@ -353,9 +357,10 @@ models:
     - not_null
   tests:
   - dbt_utils.unique_combination_of_columns:
-      combination_of_columns:
-      - reseller_id
-      - transaction_id
+      arguments:
+        combination_of_columns:
+        - reseller_id
+        - transaction_id
 - name: staging_transactions
   description: All sales from the three feeds unioned into one shape, ready for the fact table.
   columns:

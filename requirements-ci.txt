@@ -1,4 +1,14 @@
 Faker==38.2.0
 pandas==2.3.3
 pyarrow==23.0.1
-dbt-duckdb==1.9.6
+
+# dbt-core and duckdb are pinned explicitly, not left to resolve from
+# dbt-duckdb. Unpinned they float to the newest release, which is how CI ended
+# up validating dbt-core 1.12.5 / duckdb 1.5.5 while every stack image shipped
+# dbt-core 1.10.15 / duckdb 1.4.4. Keep these in step with the stack images
+# (portable-data-stack-*/{airflow,dagster}/requirements.txt), and keep duckdb in
+# step with their superset/requirements.txt: the pipeline writes the warehouse
+# file and Superset reads it.
+dbt-core==1.12.5
+dbt-duckdb==1.11.0
+duckdb==1.4.4

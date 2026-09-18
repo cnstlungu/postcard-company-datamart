@@ -2,8 +2,18 @@ version: 2
 
 sources:
   - name: parquet_input
-    meta:
+    config:
+      # external_location is a dbt-duckdb feature: it points a source at files
+      # rather than a table. It is declared twice on purpose, because the three
+      # engines that read this project look for it in different places:
+      #   - dbt-duckdb (dbt 1.x) and dbt v2's built-in DuckDB adapter read
+      #     config.external_location;
+      #   - SQLMesh's dbt adapter reads it from the source's meta only.
+      # A top-level `meta:` next to `config:` is not an option - dbt v2 rejects
+      # unexpected top-level keys - so the meta copy lives inside config.
       external_location: "read_parquet('{{ env_var('INPUT_FILES_PATH') }}/{name}.parquet')"
+      meta:
+        external_location: "read_parquet('{{ env_var('INPUT_FILES_PATH') }}/{name}.parquet')"
     tables:
       - name: channels
       - name: customers
@@ -12,7 +22,3 @@ sources:
       - name: main
       - name: resellers_type1
       - name: resellers_type2
-
-
-
-

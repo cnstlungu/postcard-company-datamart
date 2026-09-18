@@ -2,7 +2,6 @@
     config(
         materialized='incremental',
         schema='staging',
-        partitioned_by='bought_date',
         unique_key = 'transaction_id',
         on_schema_change = 'fail'
     )
