@@ -14,3 +14,6 @@ __pycache__/
 *.parquet
 *.wal
 .DS_Store
+
+# Local tooling scratch, not part of the project
+.superset/
