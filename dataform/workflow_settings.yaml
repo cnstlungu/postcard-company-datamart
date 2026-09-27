@@ -1,0 +1,4 @@
+defaultProject: postcard-company
+defaultDataset: postcard_company
+defaultLocation: US
+dataformCoreVersion: 3.0.0

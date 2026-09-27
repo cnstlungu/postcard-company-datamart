@@ -260,7 +260,10 @@ def generate_parquet_file(name, records):
     table = Table.from_pandas(df)
     pq.write_table(table, f"{os.environ['INPUT_FILES_PATH']}/{name}.parquet")
 
-n_transactions = int(os.environ.get('N_TRANSACTIONS', 1000000))
+# 100,000 is what the README and every portable-data-stack compose file
+# advertise. The default used to be 1,000,000, so anyone running the
+# generator straight out of the box built ten times the documented demo.
+n_transactions = int(os.environ.get('N_TRANSACTIONS', 100000))
 
 generate_main(n=n_transactions)
 generate_channels()
