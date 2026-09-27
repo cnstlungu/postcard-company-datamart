@@ -104,7 +104,7 @@ for i in range(500):
 
 # --- Generators ---
 
-def generate_main(n=1000000):
+def generate_main(n=100000):
     print('Generating transactions')
 
     trans = []
