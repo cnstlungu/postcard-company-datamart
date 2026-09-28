@@ -13,7 +13,7 @@ This model is used by my other projects:
 
 The dbt catalogue - every model and column with its description, tests and
 lineage - is published from `main` at
-[cnstlungu.github.io/postcard-company-datamart](https://cnstlungu.github.io/postcard-company-datamart/).
+[cnstlungu.com/postcard-company-datamart](https://cnstlungu.com/postcard-company-datamart/).
 
 # Data model
 
