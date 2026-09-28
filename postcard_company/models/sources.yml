@@ -2,6 +2,11 @@ version: 2
 
 sources:
   - name: parquet_input
+    description: >
+      The parquet files written by `generator/generate.py`. They stand in for
+      the operational systems a warehouse would normally land data from: the
+      webshop's own transactions, the customer, product and channel masters,
+      and two reseller feeds that arrive in deliberately different shapes.
     config:
       # external_location is a dbt-duckdb feature: it points a source at files
       # rather than a table. It is declared twice on purpose, because the three
@@ -14,11 +19,71 @@ sources:
       external_location: "read_parquet('{{ env_var('INPUT_FILES_PATH') }}/{name}.parquet')"
       meta:
         external_location: "read_parquet('{{ env_var('INPUT_FILES_PATH') }}/{name}.parquet')"
+
+      # Inherited by the three sales feeds below, each of which carries its own
+      # event date. The generator's window ends on DATA_END_DATE, which defaults
+      # to today, so a dataset nobody has regenerated for a few days reports
+      # here instead of turning into a dashboard that quietly stopped. Run it
+      # with `dbt source freshness`. The master-data tables have no event date
+      # and opt out individually.
+      #
+      # freshness and loaded_at_field belong under config: dbt v2 rejects them
+      # as top-level source keys, and the CI parser preflight fails on that.
+      freshness:
+        warn_after: {count: 2, period: day}
+        error_after: {count: 7, period: day}
+
     tables:
       - name: channels
+        description: >
+          Master data: the channels a sale can come through (webshop, phone,
+          reseller and so on). Reference data, rewritten whole on every run.
+        config:
+          freshness: null
+
       - name: customers
+        description: >
+          Master data: one row per direct customer, with the address the
+          geography dimension is built from. Rewritten whole on every run.
+        config:
+          freshness: null
+
       - name: products
+        description: >
+          Master data: the postcard catalogue, including the list price that
+          `dim_product` tracks. Rewritten whole on every run.
+        config:
+          freshness: null
+
       - name: resellers
+        description: >
+          Master data: the resellers that sell on the company's behalf, and the
+          country each one covers. Rewritten whole on every run.
+        config:
+          freshness: null
+
       - name: main
+        description: >
+          Direct sales - the company's own webshop and phone orders, one row
+          per transaction. The largest feed: `N_TRANSACTIONS` rows, 100,000 by
+          default.
+        config:
+          # Cast because the generator writes these dates as strings into
+          # the parquet files; freshness needs a timestamp to subtract from.
+          loaded_at_field: bought_date::timestamp
+
       - name: resellers_type1
+        description: >
+          Sales from the resellers that report in a flat, human-titled layout
+          ("Customer First Name", "Total amount"). Denormalised: the customer
+          arrives inline on every sales row rather than as a key.
+        config:
+          loaded_at_field: '"Created Date"::timestamp'
+
       - name: resellers_type2
+        description: >
+          Sales from the resellers that report in camelCase with the customer
+          nested in a struct. Carries the same facts as type 1 in a different
+          shape, which is what the two staging models exist to reconcile.
+        config:
+          loaded_at_field: '"Created Date"::timestamp'

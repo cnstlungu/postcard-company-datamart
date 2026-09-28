@@ -1,0 +1,86 @@
+name: dbt docs
+
+# Publishes the dbt catalogue to GitHub Pages. The project's whole pitch is
+# learning-by-doing, and the documentation layer was the one part a reader
+# could not see without cloning and building it themselves.
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Never let two deployments race; queue instead.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      DBT_PROFILES_DIR: ${{ github.workspace }}/postcard_company
+      DUCKDB_FILE_PATH: ${{ github.workspace }}/shared/db/datamart.duckdb
+      INPUT_FILES_PATH: ${{ github.workspace }}/shared/parquet
+      # The catalogue records column types and row counts, so it needs a real
+      # warehouse - but a small one is enough to describe the shape.
+      N_TRANSACTIONS: 10000
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v10.1.0
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: uv pip install --system -r requirements-ci.txt
+
+      - name: Build a warehouse for the catalogue
+        run: |
+          mkdir -p shared/db shared/parquet
+          python generator/generate.py
+          dbt deps --project-dir postcard_company
+          dbt seed --project-dir postcard_company
+          dbt run --project-dir postcard_company
+
+      # --static folds the manifest and the catalogue into the page itself, so
+      # Pages serves one self-contained file with no fetches to go wrong.
+      - name: Generate the docs site
+        run: |
+          dbt docs generate --static --project-dir postcard_company
+          mkdir -p site
+          cp postcard_company/target/static_index.html site/index.html
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v6
+        with:
+          enablement: true
+
+      - name: Upload the site
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5

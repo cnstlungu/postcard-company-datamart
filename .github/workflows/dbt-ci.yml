@@ -76,6 +76,14 @@ jobs:
       - name: Run dbt tests
         run: dbt test --project-dir postcard_company
 
+      # The three sales feeds declare a freshness window in sources.yml, read
+      # off the most recent sale in each parquet file. The generator's window
+      # ends on DATA_END_DATE, which defaults to today, so this both exercises
+      # the freshness config and catches a generator that has stopped reaching
+      # the present.
+      - name: Check source freshness
+        run: dbt source freshness --project-dir postcard_company
+
       # Renumbering transaction ids under an existing warehouse leaves the
       # incremental models holding their old rows. Regenerating with a larger
       # N_TRANSACTIONS shifts where the reseller feeds start numbering, which is

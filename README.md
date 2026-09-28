@@ -11,6 +11,10 @@ This model is used by my other projects:
 - [Portable Data Stack with Airflow](https://github.com/cnstlungu/portable-data-stack-airflow)
 - [Postcard Company Dataform](https://github.com/cnstlungu/postcard-company-dataform)
 
+The dbt catalogue - every model and column with its description, tests and
+lineage - is published from `main` at
+[cnstlungu.github.io/postcard-company-datamart](https://cnstlungu.github.io/postcard-company-datamart/).
+
 # Data model
 
 ![Data Model](resources/data_model.png) 
@@ -40,29 +44,23 @@ The data is generated as parquet files by a Python script `generator/generate.py
 
 ## Setting up the project
 
-1. Rename `.env.example` to `.env`. This will contain relative paths for the database file (datamart.duckdb) and parquet input files
+1. Rename `.env.example` to `.env`. It holds the dbt profiles directory and
+   the paths to the database file (datamart.duckdb) and the parquet inputs,
+   all relative to the repository root - so run the commands below from there.
 
 2. Rename `shared\db\datamart.duckdb.example` to `shared\db\datamart.duckdb` or initiate an empty database there with the same name.
 
-3. Create a Python Virtual Environment (ensure at least Python 3.10 is installed)
+3. Create a Python virtual environment and install the packages (Python 3.10 or newer)
 
-`uv venv .venv`
+`uv venv .venv && uv pip install -r requirements-ci.txt`
 
-4. Activate the Python venv
+4. Generate the data
 
-`source .venv/bin/activate`
+`uv run --env-file .env python generator/generate.py`
 
-5. Add environment variables to the virtual environment
-
-`cat .env >> .venv/bin/activate`
-
-6. Install the required packages with `uv pip`
-
-`uv pip install -r requirements-ci.txt`
-
-7. Generate the data
-
-`python generator/generate.py`
+`uv run --env-file .env` reads `.env` for that one command. Appending it to
+`.venv/bin/activate` also works, but it appends again on every re-run and
+never unsets, so the variables outlive the shell that needed them.
 
 The generated data will be under `shared/parquet`.
 
@@ -72,7 +70,7 @@ Four environment variables control it:
 | Variable | Default | Effect |
 |---|---|---|
 | `SEED` | `42` | Seeds both `random` and `Faker`. Change it for a different but still repeatable dataset. |
-| `N_TRANSACTIONS` | `1000000` | Number of direct-sale transactions. Each reseller feed adds a further 100,000 rows. |
+| `N_TRANSACTIONS` | `100000` | Number of direct-sale transactions. Each reseller feed adds a further 100,000 rows. |
 | `DATA_WINDOW_MONTHS` | `24` | Sales are spread over this many months, ending on `DATA_END_DATE`. |
 | `DATA_END_DATE` | today | Last day sales can fall on, as an ISO date. Defaults to today so the data is never stale; pin it to reproduce an earlier dataset exactly. |
 
@@ -106,29 +104,38 @@ python generator/checks.py
 
 ## Running the dbt model
 
-1. Ensure the virtual environment is activated
+Every command below is prefixed with `uv run --env-file .env`, which supplies
+`DUCKDB_FILE_PATH` and `INPUT_FILES_PATH` for that command only.
 
-`source .venv/bin/activate`
+1. Run `dbt deps` to install dependencies
 
-2. Run `dbt deps` to install dependencies
+`uv run --env-file .env dbt deps --project-dir postcard_company`
 
-`dbt deps --project-dir postcard_company`
+2. Run `dbt seed` to import the seed (static) data
 
-3. Run `dbt seed` to import the seed (static) data
+`uv run --env-file .env dbt seed --project-dir postcard_company`
 
-`dbt seed --project-dir postcard_company`
+3. Run `dbt compile` to compile the project
 
-4. Run `dbt compile` to compile the project
+`uv run --env-file .env dbt compile --project-dir postcard_company`
 
-`dbt compile --project-dir postcard_company`
+4. Run `dbt run` to run the models
 
-5. Run `dbt run` to run the models
+`uv run --env-file .env dbt run --project-dir postcard_company`
 
-`dbt run --project-dir postcard_company`
+5. Run `dbt test` to run the tests
 
-6. Run `dbt test` to run the tests
+`uv run --env-file .env dbt test --project-dir postcard_company`
 
-`dbt test --project-dir postcard_company`
+6. Check how recently the source files were generated
+
+`uv run --env-file .env dbt source freshness --project-dir postcard_company`
+
+The three sales feeds declare a freshness window in
+[`postcard_company/models/sources.yml`](postcard_company/models/sources.yml):
+they warn at two days and fail at seven, measured from the most recent sale in
+the file. A dataset nobody has regenerated shows up there rather than as a
+dashboard that quietly stopped moving.
 
 
 ## Upgrading an existing warehouse
