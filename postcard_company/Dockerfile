@@ -6,6 +6,10 @@ FROM busybox:1.37.0
 
 COPY . /src/postcard_company
 
+# .dockerignore keeps these two out of a local build, but a build from a git
+# URL - which is how the stacks build this - does not apply it.
+RUN rm -f /src/postcard_company/Dockerfile /src/postcard_company/.dockerignore
+
 # A fingerprint of the project as shipped. The copy runs only when it differs
 # from the one the last copy left behind, so moving DATAMART_REF refreshes the
 # project, while starting the stack again keeps any edits made there.
