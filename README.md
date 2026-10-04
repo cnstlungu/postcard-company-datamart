@@ -169,3 +169,28 @@ dbt test --project-dir postcard_company
 ```
 
 CI exercises this path on every run, so the command above is kept honest.
+
+
+## What the portable data stacks build from here
+
+The four `portable-data-stack-*` repos above do not copy anything from this
+repository. They build three images straight from it, by git URL, at the tag
+their `DATAMART_REF` points to:
+
+| Directory | Image | Role in the stack |
+|---|---|---|
+| [`generator/`](generator/Dockerfile) | Python | Runs `generate.py` once and writes the parquet inputs. |
+| [`postcard_company/`](postcard_company/Dockerfile) | busybox | Copies this dbt project into the stack's bind-mounted `dbt/postcard_company`, where the orchestrator runs it. The copy runs only when the pinned project changes, so edits made there survive a restart. |
+| [`superset/`](superset/Dockerfile) | Apache Superset | Serves the dashboard in `superset/assets/dashboard.zip` over the warehouse. |
+
+So the dashboard ships with the model it charts: a change to a core model and
+the matching dashboard re-export go out in the same tag. Nothing reaches a stack
+until a new tag is cut and its `DATAMART_REF` default is bumped.
+
+Superset's `duckdb` pin in [`superset/requirements.txt`](superset/requirements.txt)
+has to match the `duckdb` each stack's pipeline image writes the warehouse with,
+and the one in `requirements-ci.txt`. A newer writer produces a file an older
+reader cannot open.
+
+The [Stack images](.github/workflows/stack-images.yml) workflow builds all three
+on every pull request.

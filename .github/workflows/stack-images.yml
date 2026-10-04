@@ -1,0 +1,117 @@
+name: Stack images
+
+# The portable-data-stack-* repos build generator/, postcard_company/ and
+# superset/ straight from this repository, at the tag their DATAMART_REF points
+# to. Building them here catches a broken Dockerfile before a tag ships it to
+# four stacks at once.
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+  schedule:
+    # Weekly, for the base image scan below.
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: stack-images-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build ${{ matrix.context }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        context: [generator, postcard_company, superset]
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      # Same context the stacks use: the directory, not the repository root.
+      - name: Build the image
+        run: docker build --tag "stack-${{ matrix.context }}" "${{ matrix.context }}"
+
+      # The stacks run this image on every `docker compose up`, against a
+      # bind-mounted directory that may already hold a copy of the project,
+      # build output, and the user's own edits.
+      - name: Check the project copy
+        if: matrix.context == 'postcard_company'
+        run: |
+          out="$RUNNER_TEMP/postcard_company"
+          copy() { docker run --rm -v "$out:/datamart/postcard_company" stack-postcard_company; }
+          # The container runs as root, so edit what it wrote as root too.
+          edit() { docker run --rm -v "$out:/d" busybox:1.37.0 sh -c "$1"; }
+
+          echo "--- an older copy, from before this image or another tag: refreshed"
+          mkdir -p "$out/target"
+          echo stale > "$out/dbt_project.yml"
+          echo kept > "$out/target/manifest.json"
+          copy
+          ls -la "$out"
+          cmp postcard_company/dbt_project.yml "$out/dbt_project.yml"
+          test -d "$out/models/core"
+          test "$(cat "$out/target/manifest.json")" = kept
+          test ! -e "$out/Dockerfile"
+          test ! -e "$out/.dockerignore"
+
+          echo "--- the same version again, as on a restart: local edits kept"
+          # Leading newline: dbt_project.yml does not end with one.
+          edit 'printf "\n# local edit\n" >> /d/dbt_project.yml'
+          copy
+          grep -q '^# local edit$' "$out/dbt_project.yml"
+
+          echo "--- a different version: refreshed again"
+          edit 'echo different > /d/.datamart-fingerprint'
+          copy
+          cmp postcard_company/dbt_project.yml "$out/dbt_project.yml"
+
+  images:
+    name: Collect base images
+    # Only on the weekly run and on demand: base images change far less often
+    # than the code, and pulling them on every PR would slow the gate for nothing.
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.collect.outputs.matrix }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Read the image refs out of the Dockerfiles
+        id: collect
+        run: |
+          matrix=$(
+            grep -h '^FROM ' */Dockerfile | awk '{print $2}' \
+              | grep -v '\${' | sort -u | jq -R . | jq -sc .
+          )
+          echo "$matrix"
+          echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
+
+  scan:
+    name: Scan ${{ matrix.image }}
+    needs: images
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        image: ${{ fromJSON(needs.images.outputs.matrix) }}
+    steps:
+      # Reports rather than gates. These are upstream releases we pin but do not
+      # control, so a fresh CVE should be visible here without turning the build
+      # red until upstream ships a fix. Set exit-code to 1 to make it a gate.
+      - name: Scan for known vulnerabilities
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: ${{ matrix.image }}
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          format: table
+          exit-code: "0"
