@@ -1,0 +1,9 @@
+# Keeps the image to the project itself: no build output, no installed
+# packages, and not the two Docker files, which would otherwise be copied into
+# the stacks' bind-mounted project directory.
+Dockerfile
+.dockerignore
+target/
+dbt_packages/
+logs/
+package-lock.yml
