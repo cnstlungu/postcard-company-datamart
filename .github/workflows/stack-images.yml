@@ -62,7 +62,8 @@ jobs:
           test ! -e "$out/.dockerignore"
 
           echo "--- the same version again, as on a restart: local edits kept"
-          edit 'echo "# local edit" >> /d/dbt_project.yml'
+          # Leading newline: dbt_project.yml does not end with one.
+          edit 'printf "\n# local edit\n" >> /d/dbt_project.yml'
           copy
           grep -q '^# local edit$' "$out/dbt_project.yml"
 
