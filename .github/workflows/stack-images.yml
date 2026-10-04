@@ -38,22 +38,38 @@ jobs:
       - name: Build the image
         run: docker build --tag "stack-${{ matrix.context }}" "${{ matrix.context }}"
 
-      # The stacks run this image against a bind-mounted directory that may
-      # already hold an earlier copy of the project plus build output.
+      # The stacks run this image on every `docker compose up`, against a
+      # bind-mounted directory that may already hold a copy of the project,
+      # build output, and the user's own edits.
       - name: Check the project copy
         if: matrix.context == 'postcard_company'
         run: |
           out="$RUNNER_TEMP/postcard_company"
+          copy() { docker run --rm -v "$out:/datamart/postcard_company" stack-postcard_company; }
+          # The container runs as root, so edit what it wrote as root too.
+          edit() { docker run --rm -v "$out:/d" busybox:1.37.0 sh -c "$1"; }
+
+          echo "--- an older copy, from before this image or another tag: refreshed"
           mkdir -p "$out/target"
           echo stale > "$out/dbt_project.yml"
           echo kept > "$out/target/manifest.json"
-          docker run --rm -v "$out:/datamart/postcard_company" stack-postcard_company
+          copy
           ls -la "$out"
           cmp postcard_company/dbt_project.yml "$out/dbt_project.yml"
           test -d "$out/models/core"
           test "$(cat "$out/target/manifest.json")" = kept
           test ! -e "$out/Dockerfile"
           test ! -e "$out/.dockerignore"
+
+          echo "--- the same version again, as on a restart: local edits kept"
+          edit 'echo "# local edit" >> /d/dbt_project.yml'
+          copy
+          grep -q '^# local edit$' "$out/dbt_project.yml"
+
+          echo "--- a different version: refreshed again"
+          edit 'echo different > /d/.datamart-fingerprint'
+          copy
+          cmp postcard_company/dbt_project.yml "$out/dbt_project.yml"
 
   images:
     name: Collect base images

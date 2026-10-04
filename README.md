@@ -180,7 +180,7 @@ their `DATAMART_REF` points to:
 | Directory | Image | Role in the stack |
 |---|---|---|
 | [`generator/`](generator/Dockerfile) | Python | Runs `generate.py` once and writes the parquet inputs. |
-| [`postcard_company/`](postcard_company/Dockerfile) | busybox | Copies this dbt project into the stack's bind-mounted `dbt/postcard_company`, where the orchestrator runs it. |
+| [`postcard_company/`](postcard_company/Dockerfile) | busybox | Copies this dbt project into the stack's bind-mounted `dbt/postcard_company`, where the orchestrator runs it. The copy runs only when the pinned project changes, so edits made there survive a restart. |
 | [`superset/`](superset/Dockerfile) | Apache Superset | Serves the dashboard in `superset/assets/dashboard.zip` over the warehouse. |
 
 So the dashboard ships with the model it charts: a change to a core model and
