@@ -5,4 +5,4 @@
 # mage/, sqlmesh-dbt/requirements.txt). Those repos take this file at the tag
 # their DATAMART_REF points to, so a bump here reaches them only with that tag.
 duckdb-engine==0.17.0
-duckdb==1.4.4
+duckdb==1.5.6
