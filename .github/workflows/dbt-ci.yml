@@ -15,7 +15,15 @@ concurrency:
 
 jobs:
   dbt:
+    name: dbt (duckdb from ${{ matrix.duckdb-from }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # The stacks write the warehouse with different duckdb versions, so the
+        # model is built with the oldest of them (requirements-ci.txt) and with
+        # Superset's (superset/requirements.txt), which has to be the newest.
+        duckdb-from: [requirements-ci.txt, superset/requirements.txt]
     env:
       DBT_PROFILES_DIR: ${{ github.workspace }}/postcard_company
       DUCKDB_FILE_PATH: ${{ github.workspace }}/shared/db/datamart.duckdb
@@ -37,7 +45,12 @@ jobs:
           python-version: "3.11"
 
       - name: Install dependencies
-        run: uv pip install --system -r requirements-ci.txt
+        run: |
+          uv pip install --system -r requirements-ci.txt
+          # Then this leg's duckdb, on top rather than alongside, because
+          # requirements-ci.txt pins its own.
+          uv pip install --system "$(grep '^duckdb==' '${{ matrix.duckdb-from }}')"
+          python -c "import duckdb; print('duckdb', duckdb.__version__)"
 
       # Cheap and self-contained: runs the generator into a temporary directory
       # and checks what it produced. Ahead of the pipeline so a bad dataset
@@ -141,3 +154,23 @@ jobs:
 
       - name: Run dbt tests after the upgrade
         run: dbt test --project-dir postcard_company
+
+      # Superset opens the warehouse with the duckdb in superset/requirements.txt,
+      # whichever duckdb wrote it. The 2.0 leg writes a storage format no 1.x
+      # reader can open, so this is the check that Superset's pin really is the
+      # newest. It runs on the Python of Superset's image.
+      - name: Check Superset's duckdb can read the warehouse
+        run: |
+          uv venv /tmp/superset-reader --python 3.12
+          uv pip install --python /tmp/superset-reader -r superset/requirements.txt
+          /tmp/superset-reader/bin/python - <<'CHECK'
+          import duckdb, os
+          c = duckdb.connect(os.environ["DUCKDB_FILE_PATH"], read_only=True)
+          storage = c.execute(
+              "select tags['storage_version'] from duckdb_databases() where not internal"
+          ).fetchone()[0]
+          n = c.execute("select count(*) from postcard_company_core.fact_sales").fetchone()[0]
+          c.close()
+          print(f"Superset's duckdb {duckdb.__version__} reads a {storage} warehouse: {n:,} fact_sales rows")
+          assert n == 220_000, n
+          CHECK

@@ -1,4 +1,6 @@
-FROM apache/superset:4.1.1
+# The -py312 variant, not the plain tag: that one is Python 3.10, and duckdb 2.0
+# needs 3.11 or newer.
+FROM apache/superset:6.1.0-py312
 
 # Built by the portable-data-stack-* repos straight from this directory, at the
 # tag their DATAMART_REF points to, so the dashboard ships with the model it
@@ -7,11 +9,11 @@ FROM apache/superset:4.1.1
 # Switching to root to install the required packages
 USER root
 
-RUN pip install uv
-
 COPY --chown=superset:superset ./assets .
 COPY ./requirements.txt /tmp/requirements.txt
-RUN uv pip install --system -r /tmp/requirements.txt
+# Superset runs from the virtualenv in /app/.venv, and the image already has uv.
+# --system would install next to the venv, where Superset never looks.
+RUN uv pip install --no-cache --python /app/.venv/bin/python -r /tmp/requirements.txt
 COPY --chown=superset:superset ./entrypoint.sh /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh
 USER superset

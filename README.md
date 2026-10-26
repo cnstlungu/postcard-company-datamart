@@ -188,9 +188,13 @@ the matching dashboard re-export go out in the same tag. Nothing reaches a stack
 until a new tag is cut and its `DATAMART_REF` default is bumped.
 
 Superset's `duckdb` pin in [`superset/requirements.txt`](superset/requirements.txt)
-has to match the `duckdb` each stack's pipeline image writes the warehouse with,
-and the one in `requirements-ci.txt`. A newer writer produces a file an older
-reader cannot open.
+has to be at least as new as the `duckdb` each stack's pipeline image writes the
+warehouse with. A newer duckdb opens every older file, but an older one cannot
+open a file a newer one created: no 1.x reader opens a DuckDB 2.0 file. So Superset
+moves first, and each stack's pipeline follows when its tool allows. Today
+SQLMesh and Mage write with 1.5, and Airflow and Dagster with 2.0. The dbt CI
+builds the model with both the oldest writer's duckdb (`requirements-ci.txt`) and
+Superset's, and reads both results back with Superset's.
 
 The [Stack images](.github/workflows/stack-images.yml) workflow builds all three
 on every pull request.
