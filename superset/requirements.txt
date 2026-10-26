@@ -1,8 +1,14 @@
-# duckdb must match the version the pipeline image writes with. Superset opens
-# the same warehouse file, and a newer duckdb writes a format an older reader
-# cannot open, so these move together with the duckdb pin in requirements-ci.txt
-# here and in each portable-data-stack-* pipeline image (airflow/, dagster/,
-# mage/, sqlmesh-dbt/requirements.txt). Those repos take this file at the tag
-# their DATAMART_REF points to, so a bump here reaches them only with that tag.
+# Superset only reads the warehouse, and its duckdb must be at least as new as
+# every duckdb that writes it. A newer duckdb opens every older storage format,
+# but an older one cannot open a newer one: no 1.x reader opens a file 2.0
+# created. The portable-data-stack-* pipelines write with their own pins (1.5 in
+# sqlmesh-dbt/ and mage/, 2.0 in airflow/ and dagster/) and take this file at
+# the tag their DATAMART_REF points to. So this moves first, and each pipeline
+# follows when its tool allows. The dbt CI builds the model with this duckdb and
+# with the oldest writer's (requirements-ci.txt), and reads both results back
+# with it.
+#
+# Superset 6.1 declares duckdb<2 for its [duckdb] extra. That extra is not
+# installed here, and duckdb-engine itself accepts 2.0.
 duckdb-engine==0.17.0
-duckdb==1.5.6
+duckdb==2.0.0

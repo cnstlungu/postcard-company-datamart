@@ -5,11 +5,13 @@ pyarrow==23.0.1
 # dbt-core and duckdb are pinned explicitly, not left to resolve from
 # dbt-duckdb. Unpinned they float to the newest release, which is how CI ended
 # up validating dbt-core 1.12.5 / duckdb 1.5.5 while every stack image shipped
-# dbt-core 1.10.15 / duckdb 1.4.4. Keep these in step with the stack images
-# (portable-data-stack-*/{airflow,dagster}/requirements.txt), and keep duckdb in
-# step with superset/requirements.txt in this repo, which those stacks build
-# their Superset from: the pipeline writes the warehouse file and Superset reads
-# it.
+# dbt-core 1.10.15 / duckdb 1.4.4. Keep dbt-core in step with the stack images.
+#
+# The stacks write the warehouse with different duckdb versions: 1.5 in
+# portable-data-stack-{sqlmesh,mage}, 2.0 in -{airflow,dagster}. duckdb here is
+# the oldest of those. The dbt CI also builds the model with the duckdb in
+# superset/requirements.txt, which must be the newest, and checks that
+# Superset's duckdb reads what each build wrote.
 dbt-core==1.12.6
 dbt-duckdb==1.11.0
 duckdb==1.5.6
