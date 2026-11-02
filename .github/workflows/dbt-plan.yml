@@ -36,7 +36,7 @@ jobs:
       - name: Report column changes and downstream risks
         uses: PresentJay/dbt-plan@d98f06e8674a1e68a009112b90d0d00c41416c33 # v0.18.5
         with:
-          version: "0.18.5"
+          version: "0.18.6"
           project-dir: postcard_company
           compile-command: dbt deps && dbt compile --no-partial-parse
           fail-on: never
